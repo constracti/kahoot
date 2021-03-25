@@ -6,7 +6,7 @@ class page {
 	private $title;
 	private $action_list;
 
-	public function __construct( string $title = 'Kahoot!' ) {
+	public function __construct( string $title = config::SITE_NAME ) {
 		$this->title = $title;
 		$this->action_list = [];
 		$this->add_action( 'nav_link', function(): void {
@@ -41,10 +41,16 @@ class page {
 		<meta charset="UTF-8" />
 		<meta name="author" content="constracti" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Kahoot!</title>
+		<title><?= config::SITE_NAME ?></title>
 		<link rel="stylesheet" type="text/css" href="https://www.w3schools.com/w3css/4/w3.css" />
 		<link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" />
 		<style>
+h1, h2, h3, h4, h5, h6, a, p, th, td, label, span, input, button {
+	font-family: "Montserrat", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+a, button {
+	font-weight: bold;
+}
 .flex-row {
 	display: flex;
 }
@@ -121,5 +127,6 @@ table tbody tr:nth-child(even) {
 	</body>
 </html>
 <?php
+		exit;
 	}
 }

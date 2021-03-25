@@ -1,6 +1,7 @@
 <?php
 
 require_once 'vendor/autoload.php';
+require_once 'config.php';
 require_once 'page.php';
 require_once 'session.php';
 
@@ -14,7 +15,6 @@ function failure( string $message ): void {
 <?php
 	}, $message );
 	$page->echo_html();
-	exit;
 }
 
 function curl_safe_init( $url = NULL ) {

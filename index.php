@@ -28,7 +28,6 @@ if ( !$session->is_valid() ) {
 <?php
 	} );
 	$page->echo_html();
-	exit;
 }
 
 if ( array_key_exists( 'download', $_GET ) ) {
@@ -90,33 +89,7 @@ function excel2table( string $name ): array {
 	];
 }
 
-function player2team( string $player ) {
-	return 'marousi';
-}
-
-$page = new page();
-
-$page->add_action( 'nav_link', function() {
-?>
-<a class="leaf w3-button w3-border w3-round" href="?download">Λήψη</a>
-<?php
-} );
-
-$page->add_action( 'body_tag', function(): void {
-	global $session;
-	if ( $session->has_file() ) {
-		list( $cols, $rows ) = array_values( excel2table( $session->get_name() ) );
-		$player_list = [];
-		foreach ( $rows as $row ) {
-			$name = $row['Player'];
-			$score = $row['Current Total Score (points)'];
-			$team = player2team( $name );
-			$player_list[$name] = [
-				'team' => $team,
-				'score' => $score,
-			];
-		}
-		var_dump( $player_list );
+function print_table( array $cols, array $rows ): void {
 ?>
 <div class="leaf">
 	<table>
@@ -151,8 +124,105 @@ $page->add_action( 'body_tag', function(): void {
 	</table>
 </div>
 <?php
+}
+
+// TODO replace play with config::player2team
+
+function player2team( string $name ) {
+	switch ( $name ) {
+		case 'test1':
+			return 'ΚΘΓ';
+		case 'test2':
+			return 'ΠΚΓ';
+		default:
+			return NULL;
+	}
+}
+
+$page = new page();
+
+$page->add_action( 'nav_link', function() {
+?>
+<a class="leaf w3-button w3-border w3-round" href="?download">Λήψη</a>
+<?php
+} );
+
+$page->add_action( 'body_tag', function(): void {
+	global $session;
+	if ( $session->has_file() ) {
+		$quiz = NULL;
+		list( $cols, $rows ) = array_values( excel2table( $session->get_name() ) );
+		$player_list = [];
+		foreach ( $rows as $row ) {
+			$quiz = $row['Question Number'];
+			$name = $row['Player'];
+			$score = $row['Current Total Score (points)'];
+			$team = player2team( $name );
+			$player_list[$name] = [
+				'team' => $team,
+				'score' => $score,
+			];
+		}
+		$score_list = [];
+		foreach ( $player_list as $player ) {
+			$team = $player['team'];
+			if ( is_null( $team ) )
+				continue;
+			$league = config::get_league( $team );
+			if ( !array_key_exists( $league, $score_list ) ) {
+				$score_list[$league] = [];
+			}
+			if ( !array_key_exists( $team, $score_list[$league] ) ) {
+				$score_list[$league][$team] = 0;
+			}
+			if ( $score_list[$league][$team] < $player['score'] )
+				$score_list[$league][$team] = $player['score'];
+		}
+		$max_list = [];
+		foreach ( array_keys( $score_list ) as $league ) {
+			asort( $score_list[$league], SORT_NUMERIC );
+			$score_list[$league] = array_reverse( $score_list[$league], TRUE );
+			$max_list[$league] = max( ...array_values( $score_list[$league] ) );
+		}
+		// var_dump( $quiz, $score_list );
+?>
+<div class="flex-row">
+<?php
+		foreach ( array_keys( $score_list ) as $league ) {
+?>
+	<div class="leaf flex-col flex-grow root w3-border">
+		<h2 class="leaf"><?= config::get_category( $league ) ?></h2>
+<?php
+			foreach ( array_keys( $score_list[$league] ) as $i => $team ) {
+?>
+		<div class="leaf flex-col w3-border">
+			<div class="flex-row root">
+				<div class="flex-row flex-grow">
+					<span class="leaf w3-badge"><?= $i + 1 ?></span>
+					<span class="leaf flex-grow"><?= config::get_location( $team ) ?></span>
+				</div>
+				<span class="leaf w3-tag w3-round"><?= $score_list[$league][$team] ?></span>
+			</div>
+			<div class="w3-border-top">
+				<div class="w3-gray" style="height: 1em; width: <?= sprintf( '%.2f', 100 * $score_list[$league][$team] / $max_list[$league] ) ?>%"></div>
+			</div>
+		</div>
+<?php
+			}
+?>
+	</div>
+<?php
+		}
+?>
+</div>
+<?php
+	} else {
+?>
+<div class="leaf flex-row root w3-border w3-border-blue w3-leftbar">
+	<p class="leaf">Δεν έχει μεταφορτωθεί το αρχείο των αποτελεσμάτων.</p>
+</div>
+<?php
 	}
 } );
 
 $page->echo_html();
-exit;

@@ -1,6 +1,9 @@
 <?php
 
 
+// TODO delete old excel files
+
+
 class session {
 
 	private $valid;
@@ -27,9 +30,9 @@ class session {
 	public static function login(): void {
 		foreach ( [ 'url', 'auth' ] as $key ) {
 			if ( !array_key_exists( $key, $_POST ) )
-				exit( $key . ': not defined' );
+				failure( $key . ': not defined' );
 			if ( !is_string( $_POST[$key] ) )
-				exit( $key . ': not valid' );
+				failure( $key . ': not valid' );
 		}
 		session_start();
 		$_SESSION['url'] = $_POST['url'];
